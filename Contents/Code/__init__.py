@@ -59,7 +59,9 @@ def GetMediaInfoMovie(mediaID, myTitle, parts=[]):
 			if not os.path.exists(sTargetDir):
 				os.makedirs(sTargetDir)
 			
-			copy index file to destination folder
+			#copy index file to destination folder
+			copy(indexPath, sTargetDir)
+			#.Popen('copy "'+indexPath + '" "' + sTargetDir + '"')
 			Log.Debug('copy "'+indexPath + '" "' + sTargetDir + '"')
 			#shutil.copyfile(indexPath, sTargetDir)
 			#Add2Db(myMediaID)
