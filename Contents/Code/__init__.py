@@ -3,7 +3,6 @@ import os
 from lxml import etree
 import urllib2
 import urllib
-import subprocess
 
 PREFIX = '/agents/localbiffiles'
 NAME = 'localBifLoader'
@@ -60,8 +59,7 @@ def GetMediaInfoMovie(mediaID, myTitle, parts=[]):
 			if not os.path.exists(sTargetDir):
 				os.makedirs(sTargetDir)
 			
-			#copy index file to destination folder
-			subprocess.Popen('copy "'+indexPath + '" "' + sTargetDir + '"')
+			copy index file to destination folder
 			Log.Debug('copy "'+indexPath + '" "' + sTargetDir + '"')
 			#shutil.copyfile(indexPath, sTargetDir)
 			#Add2Db(myMediaID)
