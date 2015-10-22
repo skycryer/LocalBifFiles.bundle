@@ -1,0 +1,16 @@
+[
+	{
+		"id":"Plex_User",
+		"label":"Plex Username",
+		"type":"text",
+		"default":""
+	},
+	{
+		"id":"Plex_Pwd",
+		"label":"Plex Password",
+		"type":"text",
+		"default":"",
+		"option": "hidden",
+		"secure": "true"
+	}
+]

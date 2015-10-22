@@ -3,21 +3,18 @@ import os
 from lxml import etree
 import urllib2
 import urllib
+import httplib, base64
+import shutil
 
 PREFIX = '/agents/localbiffiles'
 NAME = 'localBifLoader'
 APPGUID = 'localBifLoader-2015'
 VERSION = '0.1'
+TOKEN = ''
 
 def Start():
-
-	token = getToken(userName, userPwd)
-	Log.Debug('Token: ' + token)
 	# Switch of auto indexing of libraries, sadly, framework only supports GET, so need to use urllib2
-	opener = urllib2.build_opener(urllib2.HTTPHandler)
-	request = urllib2.Request('http://127.0.0.1:32400/:/prefs?GenerateIndexFilesDuringAnalysis=0')
-	request.get_method = lambda: 'PUT'
-	#url = opener.open(request)
+	urlRequestToPlexServer('/:/prefs?GenerateIndexFilesDuringAnalysis=0')
 		
 class localbiffiles(Agent.Movies):
 	name = 'Local Bif Files'
@@ -44,7 +41,7 @@ def GetMediaInfoMovie(mediaID, myTitle, parts=[]):
 	for section in sections:
 		myMediaHash = section.get('hash')
 		#Log.Debug('The hash for media %s is %s' %(mediaID, myMediaHash))
-		sTargetDir = os.path.join(Core.app_support_path, 'Media', 'localhost', myMediaHash[:1] , myMediaHash[1:] + '.bundle', 'Contents', 'Indexes')
+		sTargetDir = os.path.join(Core.app_support_path, 'Media', 'localhost', myMediaHash[:1] , myMediaHash[1:] + '.bundle', 'Contents', 'Indexes', '')
 		#Log.Debug('Target Directory is : %s' %(sTargetDir))
 		root_file = os.path.dirname(parts[0].file)
 		#Log.Debug('root file: ' + root_file)
@@ -52,7 +49,6 @@ def GetMediaInfoMovie(mediaID, myTitle, parts=[]):
 		#Log.Debug('index path: ' + indexPath)
 		#check if index file exists in folder
 		if os.path.isfile(indexPath):
-			Log.Debug('index bif exists')
 			Log.Debug('index path: ' + indexPath)
 			Log.Debug('target path: ' + sTargetDir)
 			# Create target dir if it doesn't exists
@@ -60,11 +56,9 @@ def GetMediaInfoMovie(mediaID, myTitle, parts=[]):
 				os.makedirs(sTargetDir)
 			
 			#copy index file to destination folder
-			copy(indexPath, sTargetDir)
-			#.Popen('copy "'+indexPath + '" "' + sTargetDir + '"')
+			shutil.copyfile(indexPath, os.path.join(sTargetDir, 'index-sd.bif'))
 			Log.Debug('copy "'+indexPath + '" "' + sTargetDir + '"')
-			#shutil.copyfile(indexPath, sTargetDir)
-			#Add2Db(myMediaID)
+			Add2Db(myMediaHash)
 		
 ####################################################################################################
 # This will add the newly placed index to the database
@@ -72,17 +66,11 @@ def GetMediaInfoMovie(mediaID, myTitle, parts=[]):
 def Add2Db(myMediaID):
 	opener = urllib2.build_opener(urllib2.HTTPHandler)
 	#Enable Index Generation
-	request = urllib2.Request('http://127.0.0.1:32400/:/prefs?GenerateIndexFilesDuringAnalysis=1')
-	request.get_method = lambda: 'PUT'
-	url = opener.open(request)
+	urlRequestToPlexServer('/:/prefs?GenerateIndexFilesDuringAnalysis=1')
 	#Analyze media
-	request = urllib2.Request('http://127.0.0.1:32400/library/metadata/' + myMediaID + '/analyze')
-	request.get_method = lambda: 'PUT'
-	url = opener.open(request)
+	urlRequestToPlexServer('/library/metadata/' + myMediaID + '/analyze')
 	#Disable Indexing
-	request = urllib2.Request('http://127.0.0.1:32400/:/prefs?GenerateIndexFilesDuringAnalysis=0')
-	request.get_method = lambda: 'PUT'
-	url = opener.open(request)
+	urlRequestToPlexServer('/:/prefs?GenerateIndexFilesDuringAnalysis=0')
 	
 #********** Get token from plex.tv *********
 ''' This will return a valid token, that can be used for authenticating if needed, to be inserted into the header '''
@@ -112,3 +100,20 @@ def getToken():
 		Log.Critical('Status was: %s' %httpResponse.headers)
 		return ''			
 	return myToken
+
+def urlRequestToPlexServer(urlForCall):
+	txdata = ""
+	token = getToken()
+
+	headers={'X-Plex-Client-Identifier': "Test script",
+			'X-Plex-Product': "Test script 356546545",
+			'X-Plex-Version': "0.001",
+			'X-Plex-Token': token}
+	Log.Debug(token + ' - ' + urlForCall)
+	conn = httplib.HTTPConnection("127.0.0.1:32400")
+	conn.request("GET",urlForCall,txdata,headers)
+	response = conn.getresponse()
+	print response.status, response.reason
+	data = response.read()
+	print str(data)
+	conn.close()
