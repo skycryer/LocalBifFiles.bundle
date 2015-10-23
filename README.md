@@ -13,7 +13,7 @@ It is a first version so please be aware of bugs. But on testing it, i could not
 
 Please use this on your own risk.
 
-If you find a bug or have suggestions please post them "[on the Plex Forum](https://support.plex.tv/hc/en-us/articles/201187656-How-do-I-manually-install-a-channel-)"  
+If you find a bug or have suggestions please post them "[on the Plex Forum](https://forums.plex.tv/discussion/189092/plex-media-index-file-local-scanner?new=1)"  
 
 
 Installation
