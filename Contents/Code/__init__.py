@@ -1,8 +1,5 @@
 import re
 import os
-from lxml import etree
-import urllib2
-import urllib
 import httplib, base64
 import shutil
 
@@ -10,12 +7,12 @@ PREFIX = '/agents/localbiffiles'
 NAME = 'localBifLoader'
 APPGUID = 'localBifLoader-2015'
 VERSION = '0.1'
-TOKEN = ''
+TOKEN = getToken()
 
 def Start():
-	# Switch of auto indexing of libraries, sadly, framework only supports GET, so need to use urllib2
+	# Switch of auto indexing of libraries
 	urlRequestToPlexServer('/:/prefs?GenerateIndexFilesDuringAnalysis=0')
-		
+	
 class localbiffiles(Agent.Movies):
 	name = 'Local Bif Files'
 	languages = [Locale.Language.NoLanguage]
@@ -44,9 +41,8 @@ def GetMediaInfoMovie(mediaID, myTitle, parts=[]):
 		sTargetDir = os.path.join(Core.app_support_path, 'Media', 'localhost', myMediaHash[:1] , myMediaHash[1:] + '.bundle', 'Contents', 'Indexes', '')
 		#Log.Debug('Target Directory is : %s' %(sTargetDir))
 		root_file = os.path.dirname(parts[0].file)
-		#Log.Debug('root file: ' + root_file)
+		#path to local index file
 		indexPath = os.path.join(root_file, 'index-sd.bif')
-		#Log.Debug('index path: ' + indexPath)
 		#check if index file exists in folder
 		if os.path.isfile(indexPath):
 			Log.Debug('index path: ' + indexPath)
@@ -58,7 +54,7 @@ def GetMediaInfoMovie(mediaID, myTitle, parts=[]):
 			#copy index file to destination folder
 			shutil.copyfile(indexPath, os.path.join(sTargetDir, 'index-sd.bif'))
 			Log.Debug('copy "'+indexPath + '" "' + sTargetDir + '"')
-			Add2Db(myMediaHash)
+			Add2Db(mediaID)
 		
 ####################################################################################################
 # This will add the newly placed index to the database
@@ -103,15 +99,13 @@ def getToken():
 
 def urlRequestToPlexServer(urlForCall):
 	txdata = ""
-	token = getToken()
 
 	headers={'X-Plex-Client-Identifier': "Test script",
 			'X-Plex-Product': "Test script 356546545",
 			'X-Plex-Version': "0.001",
-			'X-Plex-Token': token}
-	Log.Debug(token + ' - ' + urlForCall)
+			'X-Plex-Token': TOKEN}
 	conn = httplib.HTTPConnection("127.0.0.1:32400")
-	conn.request("GET",urlForCall,txdata,headers)
+	conn.request("PUT",urlForCall,txdata,headers)
 	response = conn.getresponse()
 	print response.status, response.reason
 	data = response.read()
